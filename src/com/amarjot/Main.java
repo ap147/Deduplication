@@ -42,42 +42,23 @@ public class Main {
         int from = 0;
         int to = chunk;
 
+        String chunkName = filename + 0;
+
         // For every chunk
         for (int x = 0; x < loopLength; x++)
         {
-            String chunkName = filename + x;
             dataSplit = Arrays.copyOfRange(data, from, to);
-
-            // Calculate Hash
-            String hash = calculateHash(dataSplit);
-            String chunkExists = hashExists ("globalHashs", hash);
-            // IF chunk doesnt exist
-            if (chunkExists.equals("0"))
-            {
-                // Write this new chunk to a file & ADD HASH TO Global hashfile
-                write(chunkName, dataSplit);
-
-                String msg = hash + " " + chunkName + " " + 1;
-                addToFile("globalHashs", msg);
-                addToFile(skeletonfile, chunkName);
-
-            }
-            // OTHERWISE
-            else
-            {
-                addToFile(skeletonfile, chunkExists);
-            }
+            saveChunk(chunkName, dataSplit, skeletonfile);
 
             from = to;
             to = from + chunk;
+            chunkName = filename + (x + 1);
         }
 
         if ((length % 2) == 1)
         {
-            System.out.println(length);
-            System.out.println("Adding last bit");
             dataSplit = Arrays.copyOfRange(data, (length - 1), length - 1);
-            write("10", dataSplit);
+            saveChunk(chunkName, dataSplit, skeletonfile);
         }
 
         return false;
@@ -90,7 +71,32 @@ public class Main {
         return false;
     }
 
-    private static void write (String filename, byte [] data) throws IOException {
+    private static void saveChunk (String chunkName, byte [] dataSplit, String skeletonfile) throws Exception {
+        // Calculate Hash
+        String hash = calculateHash(dataSplit);
+        String chunkExists = hashExists ("globalHashs", hash);
+        String msg;
+
+        // IF chunk doesnt exist
+        if (chunkExists.equals("0"))
+        {
+            // Write this new chunk to a file & ADD HASH TO Global hashfile
+            write(chunkName, dataSplit);
+
+            msg = hash + " " + chunkName + " " + 1;
+            addToFile("globalHashs", msg);
+            addToFile(skeletonfile, chunkName);
+
+        }
+        // OTHERWISE
+        else
+        {
+            addToFile(skeletonfile, chunkExists);
+        }
+    }
+
+    private static void write (String filename, byte [] data) throws IOException
+    {
         FileOutputStream stream = new FileOutputStream(filename);
         try
         {
@@ -106,8 +112,8 @@ public class Main {
         }
     }
 
-    private static boolean createEmptyFile (String filename) throws IOException {
-
+    private static boolean createEmptyFile (String filename) throws IOException
+    {
         Path path = Paths.get(filename);
 
         try {
@@ -119,7 +125,8 @@ public class Main {
         }
     }
 
-    private static void appendToGlobalHash (String filename, byte [] data) throws IOException {
+    private static void appendToGlobalHash (String filename, byte [] data) throws IOException
+    {
 
     }
 
@@ -170,16 +177,20 @@ public class Main {
 
     private static String hashExists (String filename, String hash)
     {
-        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename)))
+        {
             String line;
-            while ((line = br.readLine()) != null) {
+            while ((line = br.readLine()) != null)
+            {
                 String array[] = line.split(" ");
                 if (array[0].equals(hash))
                 {
                     return array[1];
                 }
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
         return "0";
@@ -196,9 +207,12 @@ public class Main {
     {
         String entry = data + '\n';
 
-        try {
+        try
+        {
             Files.write(Paths.get(filename), entry.getBytes(), StandardOpenOption.APPEND);
-        }catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             //exception handling left as an exercise for the reader
         }
     }
