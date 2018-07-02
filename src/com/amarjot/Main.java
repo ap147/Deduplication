@@ -5,13 +5,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.*;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 public class Main {
 
     private static String globalHashFileName = "globalHashFile";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
 
         String save = "save";
         String load = "load";
@@ -28,7 +29,7 @@ public class Main {
         }
     }
 
-    private static boolean save (String filename) throws IOException {
+    private static boolean save (String filename) throws Exception {
 
         // Read the file into a byte array
         byte [] data = readBytesFromFile(filename);
@@ -45,7 +46,7 @@ public class Main {
 
         for (int x = 0; x < loopLength; x++)
         {
-            String chunkName = x + "";
+            String chunkName = filename + 1;
             dataSplit = Arrays.copyOfRange(data, from, to);
 
             // Calculate Hash
@@ -163,9 +164,10 @@ public class Main {
     }
 
 
-    private static String calculateHash (byte [] data)
+    private static String calculateHash (byte [] data) throws Exception
     {
-        return "hash";
+        Checksum x = new Checksum();
+        return x.getChecksum(data, "SHA1");
     }
 
     private static boolean hashExists (byte[] filename, String hash)
