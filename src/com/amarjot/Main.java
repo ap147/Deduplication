@@ -42,6 +42,7 @@ public class Main {
         int from = 0;
         int to = chunk;
 
+        // For every chunk
         for (int x = 0; x < loopLength; x++)
         {
             String chunkName = filename + x;
@@ -49,21 +50,22 @@ public class Main {
 
             // Calculate Hash
             String hash = calculateHash(dataSplit);
-
-            // IF HASH exist
-            if (hashExists ("globalHashs", hash))
+            String chunkExists = hashExists ("globalHashs", hash);
+            // IF chunk doesnt exist
+            if (chunkExists.equals("0"))
             {
-                System.out.println("Chunk already exists.");
-                // INCREMEANT HASH occurence counter IN Global hashfile
-            }
-            else
-            {
-                // OTHERWISE Write this new chunk to a file
+                // Write this new chunk to a file & ADD HASH TO Global hashfile
                 write(chunkName, dataSplit);
 
-                // ADD HASH TO Global hashfile
-                addToFile("globalHashs", hash);
-                addToFile(skeletonfile, hash);
+                String msg = hash + " " + chunkName + " " + 1;
+                addToFile("globalHashs", msg);
+                addToFile(skeletonfile, chunkName);
+
+            }
+            // OTHERWISE
+            else
+            {
+                addToFile(skeletonfile, chunkExists);
             }
 
             from = to;
@@ -166,20 +168,27 @@ public class Main {
         return x.getChecksum(data, "SHA1");
     }
 
-    private static boolean hashExists (String filename, String hash)
+    private static String hashExists (String filename, String hash)
     {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.equals(hash))
+                String array[] = line.split(" ");
+                if (array[0].equals(hash))
                 {
-                    return true;
+                    return array[1];
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return false;
+        return "0";
+    }
+
+    // Used when chunk is being used for multiple files
+    private static void incrementHash(String filename, String hash)
+    {
+       // https://stackoverflow.com/questions/20039980/java-replace-line-in-text-file
     }
 
     // When file uploaded, makes entry in dataMap.
