@@ -1,16 +1,10 @@
 package com.amarjot;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 public class Main {
-
-    private static String globalHashFileName = "globalHashFile";
 
     public static void main(String[] args) throws Exception {
 
@@ -34,6 +28,10 @@ public class Main {
         // Read the file into a byte array
         byte [] data = readBytesFromFile(filename);
 
+        // Stores hashs used to make up original file
+        String skeletonfile = filename + "dup";
+        createEmptyFile(skeletonfile);
+
         int length = data.length;
         int chunk = length / 2;
 
@@ -46,31 +44,27 @@ public class Main {
 
         for (int x = 0; x < loopLength; x++)
         {
-            String chunkName = filename + 1;
+            String chunkName = filename + x;
             dataSplit = Arrays.copyOfRange(data, from, to);
 
             // Calculate Hash
             String hash = calculateHash(dataSplit);
 
             // IF HASH exist
-            if (hashExists (dataSplit, hash))
+            if (hashExists ("globalHashs", hash))
             {
+                System.out.println("Chunk already exists.");
                 // INCREMEANT HASH occurence counter IN Global hashfile
             }
             else
             {
-                // OTHERWISE
-                // Write this new chunk to a file
+                // OTHERWISE Write this new chunk to a file
                 write(chunkName, dataSplit);
 
                 // ADD HASH TO Global hashfile
+                addToFile("globalHashs", hash);
+                addToFile(skeletonfile, hash);
             }
-
-            // ADD HASH TO skeleton file
-            String skeletonfile = filename + "dup";
-            createEmptyFile(skeletonfile);
-            addToFile(skeletonfile, hash);
-
 
             from = to;
             to = from + chunk;
@@ -110,14 +104,16 @@ public class Main {
         }
     }
 
-    private static void createEmptyFile (String filename) throws IOException {
+    private static boolean createEmptyFile (String filename) throws IOException {
 
         Path path = Paths.get(filename);
 
         try {
             Files.createFile(path);
+            return false;
         } catch (FileAlreadyExistsException e) {
-            System.err.println("already exists: " + e.getMessage());
+            //System.err.println("already exists: " + e.getMessage());
+            return true;
         }
     }
 
@@ -170,8 +166,19 @@ public class Main {
         return x.getChecksum(data, "SHA1");
     }
 
-    private static boolean hashExists (byte[] filename, String hash)
+    private static boolean hashExists (String filename, String hash)
     {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.equals(hash))
+                {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
