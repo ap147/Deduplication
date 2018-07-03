@@ -67,10 +67,39 @@ public class Main {
 
     private static boolean load (String filename)
     {
+        // Store each file in a byte array
+        byte [] a = readBytesFromFile("file0");
+        byte [] b = readBytesFromFile("file1");
+        byte [] c = readBytesFromFile("file2");
 
+        // Combine them
+        byte [] combined = new byte [a.length + b.length + c.length];
+        System.arraycopy(a,0,combined,0, a.length);
+        System.arraycopy(b,0,combined, a.length, b.length);
+        System.arraycopy(c,0,combined, b.length, c.length);
+
+        // Turn a byte array into a file
+        byteArrayToFile(combined);
         return false;
     }
 
+    private static void byteArrayToFile(byte [] fullFile)
+    {
+        // https://stackoverflow.com/questions/13352972/convert-file-to-byte-array-and-vice-versa
+        String strFilePath = "loaddFile";
+        try {
+            FileOutputStream fos = new FileOutputStream(strFilePath);
+
+            fos.write(fullFile);
+            fos.close();
+        }
+        catch(FileNotFoundException ex)   {
+            System.out.println("FileNotFoundException : " + ex);
+        }
+        catch(IOException ioe)  {
+            System.out.println("IOException : " + ioe);
+        }
+    }
     private static void saveChunk (String chunkName, byte [] dataSplit, String skeletonfile) throws Exception {
         // Calculate Hash
         String hash = calculateHash(dataSplit);
@@ -86,7 +115,6 @@ public class Main {
             msg = hash + " " + chunkName + " " + 1;
             addToFile("globalHashs", msg);
             addToFile(skeletonfile, chunkName);
-
         }
         // OTHERWISE
         else
@@ -116,10 +144,13 @@ public class Main {
     {
         Path path = Paths.get(filename);
 
-        try {
+        try
+        {
             Files.createFile(path);
             return false;
-        } catch (FileAlreadyExistsException e) {
+        }
+        catch (FileAlreadyExistsException e)
+        {
             //System.err.println("already exists: " + e.getMessage());
             return true;
         }
