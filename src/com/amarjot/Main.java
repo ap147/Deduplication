@@ -33,7 +33,7 @@ public class Main {
         createEmptyFile(skeletonfile);
 
         int length = data.length;
-        int chunk = length / 2;
+        int chunk = length / 10;
 
         byte [] dataSplit;
 
@@ -65,28 +65,39 @@ public class Main {
     }
 
 
-    private static boolean load (String filename)
+    private static void load (String filename)
     {
-        // Store each file in a byte array
-        byte [] a = readBytesFromFile("file0");
-        byte [] b = readBytesFromFile("file1");
-        byte [] c = readBytesFromFile("file2");
+        byte [] chunk, combinedChunks, tempCombinedChunks;
+        String refrenceFileName = filename + "dup";
 
-        // Combine them
-        byte [] combined = new byte [a.length + b.length + c.length];
-        System.arraycopy(a,0,combined,0, a.length);
-        System.arraycopy(b,0,combined, a.length, b.length);
-        System.arraycopy(c,0,combined, b.length, c.length);
+        try (BufferedReader br = new BufferedReader(new FileReader(refrenceFileName)))
+        {
+            String line = br.readLine();
+            combinedChunks = readBytesFromFile(line);
 
-        // Turn a byte array into a file
-        byteArrayToFile(combined);
-        return false;
+            while ((line = br.readLine()) != null)
+            {
+                chunk = readBytesFromFile(line);
+                tempCombinedChunks = new byte [combinedChunks.length + chunk.length];
+
+                System.arraycopy(combinedChunks, 0, tempCombinedChunks, 0, combinedChunks.length);
+                System.arraycopy(chunk, 0, tempCombinedChunks, combinedChunks.length, chunk.length );
+
+                combinedChunks = tempCombinedChunks;
+            }
+            byteArrayToFile(filename, combinedChunks);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
-    private static void byteArrayToFile(byte [] fullFile)
+
+    private static void byteArrayToFile(String filename, byte [] fullFile)
     {
         // https://stackoverflow.com/questions/13352972/convert-file-to-byte-array-and-vice-versa
-        String strFilePath = "loaddFile";
+        String strFilePath = filename;
         try {
             FileOutputStream fos = new FileOutputStream(strFilePath);
 
@@ -170,7 +181,7 @@ public class Main {
 
             File file = new File(filePath);
             bytesArray = new byte[(int) file.length()];
-
+            System.out.println(filePath);
             //read file into bytes[]
             fileInputStream = new FileInputStream(filePath);
             fileInputStream.read(bytesArray);
