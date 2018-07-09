@@ -11,8 +11,6 @@ public class Main {
         String save = "save";
         String load = "load";
 
-
-
         // Save
         if (args[0].equals(save))
         {
@@ -40,15 +38,18 @@ public class Main {
         int lengthData = data.length;
 
         int from = currentPoint;
-        int to = chunkSize - 1;
+        int to = chunkSize;
 
         String chunkName;
 
         while (currentPoint != lengthData)
         {
             chunkName = filename + currentPoint;
+
+            // When not enough bytes for a whole chunk
             if (NotEnoughBytes(lengthData, currentPoint, chunkSize))
             {
+                // Make a chunk with left over bytes
                 int leftOver = lengthData - currentPoint;
                 dataChunk = Arrays.copyOfRange(data, from, from + leftOver);
                 saveChunk(chunkName, dataChunk, skeletonfile);
@@ -63,7 +64,7 @@ public class Main {
             currentPoint = currentPoint + chunkSize;
 
             from = currentPoint;
-            to = currentPoint + (chunkSize - 1);
+            to = currentPoint + (chunkSize);
         }
     }
 
