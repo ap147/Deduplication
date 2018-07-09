@@ -11,10 +11,13 @@ public class Main {
         String save = "save";
         String load = "load";
 
+
+
         // Save
         if (args[0].equals(save))
         {
-            save(args[1]);
+            int chunkSize = Integer.parseInt(args[1]);
+            save(args[2], chunkSize);
         }
         // Load
         else if (args[0].equals(load))
@@ -23,7 +26,7 @@ public class Main {
         }
     }
 
-    private static boolean save (String filename) throws Exception {
+    private static void save (String filename, int chunkSize) throws Exception {
 
         // Read the file into a byte array
         byte [] data = readBytesFromFile(filename);
@@ -32,35 +35,45 @@ public class Main {
         String skeletonfile = filename + "dup";
         createEmptyFile(skeletonfile);
 
-        int length = data.length;
-        int chunk = length / 10;
+        byte [] dataChunk;
+        int currentPoint = 0;
+        int lengthData = data.length;
 
-        byte [] dataSplit;
+        int from = currentPoint;
+        int to = chunkSize - 1;
 
-        int loopLength = length / chunk;
+        String chunkName;
 
-        int from = 0;
-        int to = chunk;
-
-        String chunkName = filename + 0;
-
-        // For every chunk
-        for (int x = 0; x < loopLength; x++)
+        while (currentPoint != lengthData)
         {
-            dataSplit = Arrays.copyOfRange(data, from, to);
-            saveChunk(chunkName, dataSplit, skeletonfile);
+            chunkName = filename + currentPoint;
+            if (NotEnoughBytes(lengthData, currentPoint, chunkSize))
+            {
+                int leftOver = lengthData - currentPoint;
+                dataChunk = Arrays.copyOfRange(data, from, from + leftOver);
+                saveChunk(chunkName, dataChunk, skeletonfile);
+                break;
+            }
+            else
+            {
+                dataChunk = Arrays.copyOfRange(data, from, to);
+                saveChunk(chunkName, dataChunk, skeletonfile);
+            }
 
-            from = to;
-            to = from + chunk;
-            chunkName = filename + (x + 1);
+            currentPoint = currentPoint + chunkSize;
+
+            from = currentPoint;
+            to = currentPoint + (chunkSize - 1);
         }
+    }
 
-        if ((length % 2) == 1)
+    private static boolean NotEnoughBytes(int length, int pointer, int chunkSize)
+    {
+        int result = pointer + chunkSize;
+        if (result > length)
         {
-            dataSplit = Arrays.copyOfRange(data, (length - 1), length - 1);
-            saveChunk(chunkName, dataSplit, skeletonfile);
+            return true;
         }
-
         return false;
     }
 
